@@ -1249,6 +1249,7 @@ static int ep_poll_callback(wait_queue_entry_t *wait, unsigned mode, int sync, v
 	}
 
 	/* If this file is already in the ready list we exit soon */
+	// 将就绪item加入到readylist
 	if (!ep_is_linked(epi) &&
 	    list_add_tail_lockless(&epi->rdllink, &ep->rdllist)) {
 		ep_pm_stay_awake_rcu(epi);
@@ -1275,6 +1276,7 @@ static int ep_poll_callback(wait_queue_entry_t *wait, unsigned mode, int sync, v
 				break;
 			}
 		}
+		// 唤醒epoll wait
 		wake_up(&ep->wq);
 	}
 	if (waitqueue_active(&ep->poll_wait))
@@ -1529,6 +1531,7 @@ static int ep_insert(struct eventpoll *ep, const struct epoll_event *event,
 
 	/* Initialize the poll table using the queue callback */
 	epq.epi = epi;
+	// 下面一句等价于&(epq.pt)->qproc = ep_ptable_queue_proc;
 	init_poll_funcptr(&epq.pt, ep_ptable_queue_proc);
 
 	/*
@@ -1879,9 +1882,11 @@ fetch_events:
 	 */
 	if (!waiter) {
 		waiter = true;
+		// 初始化一个等待队列项
 		init_waitqueue_entry(&wait, current);
 
 		spin_lock_irq(&ep->wq.lock);
+		// 然后把这个队列项加入ep的wq这个队列
 		__add_wait_queue_exclusive(&ep->wq, &wait);
 		spin_unlock_irq(&ep->wq.lock);
 	}
@@ -1892,6 +1897,7 @@ fetch_events:
 		 * a wakeup in between. That's why we set the task state
 		 * to TASK_INTERRUPTIBLE before doing the checks.
 		 */
+		// 设置成可中断的睡眠,当条件满足时唤醒epoll_wait
 		set_current_state(TASK_INTERRUPTIBLE);
 		/*
 		 * Always short-circuit for fatal signals to allow
@@ -2100,6 +2106,10 @@ SYSCALL_DEFINE1(epoll_create, int, size)
  * the eventpoll file that enables the insertion/removal/change of
  * file descriptors inside the interest set.
  */
+
+/*
+ * epoll_ctl具体实现, op代表三种操作, add del mod
+ * */
 SYSCALL_DEFINE4(epoll_ctl, int, epfd, int, op, int, fd,
 		struct epoll_event __user *, event)
 {
@@ -2112,6 +2122,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, int, op, int, fd,
 	struct eventpoll *tep = NULL;
 
 	error = -EFAULT;
+	// copy_from_user将用户关注的event从用户态拷贝到内核态
 	if (ep_op_has_event(op) &&
 	    copy_from_user(&epds, event, sizeof(struct epoll_event)))
 		goto error_return;

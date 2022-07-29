@@ -328,7 +328,7 @@ static inline int ep_cmp_ffd(struct epoll_filefd *p1,
 			     struct epoll_filefd *p2)
 {
 	return (p1->file > p2->file ? +1:
-	        (p1->file < p2->file ? -1 : p1->fd - p2->fd));
+				      (p1->file < p2->file ? -1 : p1->fd - p2->fd));
 }
 
 /* Tells us if the item is currently linked */
@@ -378,7 +378,7 @@ static void ep_nested_calls_init(struct nested_calls *ncalls)
 static inline int ep_events_available(struct eventpoll *ep)
 {
 	return !list_empty_careful(&ep->rdllist) ||
-		READ_ONCE(ep->ovflist) != EP_UNACTIVE_PTR;
+	       READ_ONCE(ep->ovflist) != EP_UNACTIVE_PTR;
 }
 
 #ifdef CONFIG_NET_RX_BUSY_POLL
@@ -666,9 +666,9 @@ static inline void ep_pm_stay_awake_rcu(struct epitem *epi)
  * Returns: The same integer error code returned by the @sproc callback.
  */
 static __poll_t ep_scan_ready_list(struct eventpoll *ep,
-			      __poll_t (*sproc)(struct eventpoll *,
-					   struct list_head *, void *),
-			      void *priv, int depth, bool ep_locked)
+				   __poll_t (*sproc)(struct eventpoll *,
+						     struct list_head *, void *),
+				   void *priv, int depth, bool ep_locked)
 {
 	__poll_t res;
 	int pwake = 0;
@@ -872,7 +872,7 @@ static int ep_eventpoll_release(struct inode *inode, struct file *file)
 }
 
 static __poll_t ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
-			       void *priv);
+				    void *priv);
 static void ep_ptable_queue_proc(struct file *file, wait_queue_head_t *whead,
 				 poll_table *pt);
 
@@ -882,7 +882,7 @@ static void ep_ptable_queue_proc(struct file *file, wait_queue_head_t *whead,
  * is correctly annotated.
  */
 static __poll_t ep_item_poll(const struct epitem *epi, poll_table *pt,
-				 int depth)
+			     int depth)
 {
 	struct eventpoll *ep;
 	bool locked;
@@ -901,7 +901,7 @@ static __poll_t ep_item_poll(const struct epitem *epi, poll_table *pt,
 }
 
 static __poll_t ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
-			       void *priv)
+				    void *priv)
 {
 	struct epitem *epi, *tmp;
 	poll_table pt;
@@ -955,7 +955,7 @@ static void ep_show_fdinfo(struct seq_file *m, struct file *f)
 		struct inode *inode = file_inode(epi->ffd.file);
 
 		seq_printf(m, "tfd: %8d events: %8x data: %16llx "
-			   " pos:%lli ino:%lx sdev:%x\n",
+			      " pos:%lli ino:%lx sdev:%x\n",
 			   epi->ffd.fd, epi->event.events,
 			   (long long)epi->event.data,
 			   (long long)epi->ffd.file->f_pos,
@@ -1260,7 +1260,7 @@ static int ep_poll_callback(wait_queue_entry_t *wait, unsigned mode, int sync, v
 	 */
 	if (waitqueue_active(&ep->wq)) {
 		if ((epi->event.events & EPOLLEXCLUSIVE) &&
-					!(pollflags & POLLFREE)) {
+		    !(pollflags & POLLFREE)) {
 			switch (pollflags & EPOLLINOUT_BITS) {
 			case EPOLLIN:
 				if (epi->event.events & EPOLLIN)
@@ -1411,15 +1411,15 @@ static int reverse_path_check_proc(void *priv, void *cookie, int call_nests)
 				}
 			} else {
 				error = ep_call_nested(&poll_loop_ncalls,
-							reverse_path_check_proc,
-							child_file, child_file,
-							current);
+						       reverse_path_check_proc,
+						       child_file, child_file,
+						       current);
 			}
 			if (error != 0)
 				break;
 		} else {
 			printk(KERN_ERR "reverse_path_check_proc: "
-				"file is not an ep!\n");
+					"file is not an ep!\n");
 		}
 	}
 	rcu_read_unlock();
@@ -1445,8 +1445,8 @@ static int reverse_path_check(void)
 	list_for_each_entry(current_file, &tfile_check_list, f_tfile_llink) {
 		path_count_init();
 		error = ep_call_nested(&poll_loop_ncalls,
-					reverse_path_check_proc, current_file,
-					current_file, current);
+				       reverse_path_check_proc, current_file,
+				       current_file, current);
 		if (error)
 			break;
 	}
@@ -1699,7 +1699,7 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi,
 }
 
 static __poll_t ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
-			       void *priv)
+				    void *priv)
 {
 	struct ep_send_events_data *esed = priv;
 	__poll_t revents;
@@ -1973,8 +1973,8 @@ static int ep_loop_check_proc(void *priv, void *cookie, int call_nests)
 			if (ep_tovisit->visited)
 				continue;
 			error = ep_call_nested(&poll_loop_ncalls,
-					ep_loop_check_proc, epi->ffd.file,
-					ep_tovisit, current);
+					       ep_loop_check_proc, epi->ffd.file,
+					       ep_tovisit, current);
 			if (error != 0)
 				break;
 		} else {
@@ -2013,10 +2013,10 @@ static int ep_loop_check(struct eventpoll *ep, struct file *file)
 	struct eventpoll *ep_cur, *ep_next;
 
 	ret = ep_call_nested(&poll_loop_ncalls,
-			      ep_loop_check_proc, file, ep, current);
+			     ep_loop_check_proc, file, ep, current);
 	/* clear visited list */
 	list_for_each_entry_safe(ep_cur, ep_next, &visited_list,
-							visited_list_link) {
+				  visited_list_link) {
 		ep_cur->visited = 0;
 		list_del(&ep_cur->visited_list_link);
 	}
@@ -2066,7 +2066,7 @@ static int do_epoll_create(int flags)
 		goto out_free_ep;
 	}
 	file = anon_inode_getfile("[eventpoll]", &eventpoll_fops, ep,
-				 O_RDWR | (flags & O_CLOEXEC));
+				  O_RDWR | (flags & O_CLOEXEC));
 	if (IS_ERR(file)) {
 		error = PTR_ERR(file);
 		goto out_free_fd;
@@ -2153,7 +2153,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, int, op, int, fd,
 		if (op == EPOLL_CTL_MOD)
 			goto error_tgt_fput;
 		if (op == EPOLL_CTL_ADD && (is_file_epoll(tf.file) ||
-				(epds.events & ~EPOLLEXCLUSIVE_OK_BITS)))
+					    (epds.events & ~EPOLLEXCLUSIVE_OK_BITS)))
 			goto error_tgt_fput;
 	}
 
@@ -2181,7 +2181,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, int, op, int, fd,
 	mutex_lock_nested(&ep->mtx, 0);
 	if (op == EPOLL_CTL_ADD) {
 		if (!list_empty(&f.file->f_ep_links) ||
-						is_file_epoll(tf.file)) {
+		    is_file_epoll(tf.file)) {
 			full_check = 1;
 			mutex_unlock(&ep->mtx);
 			mutex_lock(&epmutex);
@@ -2193,7 +2193,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, int, op, int, fd,
 				}
 			} else
 				list_add(&tf.file->f_tfile_llink,
-							&tfile_check_list);
+					 &tfile_check_list);
 			mutex_lock_nested(&ep->mtx, 0);
 			if (is_file_epoll(tf.file)) {
 				tep = tf.file->private_data;
@@ -2330,10 +2330,10 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd, struct epoll_event __user *, events,
 
 #ifdef CONFIG_COMPAT
 COMPAT_SYSCALL_DEFINE6(epoll_pwait, int, epfd,
-			struct epoll_event __user *, events,
-			int, maxevents, int, timeout,
-			const compat_sigset_t __user *, sigmask,
-			compat_size_t, sigsetsize)
+		       struct epoll_event __user *, events,
+		       int, maxevents, int, timeout,
+		       const compat_sigset_t __user *, sigmask,
+		       compat_size_t, sigsetsize)
 {
 	long err;
 
@@ -2361,7 +2361,7 @@ static int __init eventpoll_init(void)
 	 * Allows top 4% of lomem to be allocated for epoll watches (per user).
 	 */
 	max_user_watches = (((si.totalram - si.totalhigh) / 25) << PAGE_SHIFT) /
-		EP_ITEM_COST;
+			   EP_ITEM_COST;
 	BUG_ON(max_user_watches < 0);
 
 	/*
@@ -2383,11 +2383,11 @@ static int __init eventpoll_init(void)
 
 	/* Allocates slab cache used to allocate "struct epitem" items */
 	epi_cache = kmem_cache_create("eventpoll_epi", sizeof(struct epitem),
-			0, SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT, NULL);
+				      0, SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT, NULL);
 
 	/* Allocates slab cache used to allocate "struct eppoll_entry" */
 	pwq_cache = kmem_cache_create("eventpoll_pwq",
-		sizeof(struct eppoll_entry), 0, SLAB_PANIC|SLAB_ACCOUNT, NULL);
+				      sizeof(struct eppoll_entry), 0, SLAB_PANIC|SLAB_ACCOUNT, NULL);
 
 	return 0;
 }
